@@ -1,14 +1,24 @@
 
 class CommandRegistry
   def initialize
-    @commands
+    @commands = {}
   end
-  def register(command:)
-    @commands = "!#{command.name}"
+
+  def register(command)
+        @commands["!#{command.name}"] = command
   end
   def find(name)
-    normalized = name.start_with?("!") ? name[1..] : name
-    @commands[normalized]
+    key = normalize_name(name)
+    @commands[key]
   end
+  def all
+    @commands.values
+  end
+
+  private
+  def normalize_name(name)
+    name.strip.downcase
+  end
+
 
 end

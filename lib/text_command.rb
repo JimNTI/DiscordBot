@@ -5,7 +5,7 @@ require_relative '../lib/command'
 class TextCommand < Command
   attr_reader :text
   def initialize(name:, description:, text:)
-    super(name: "test", description: "Test command")
+    super(name: name, description: description)
     @text = text
   end
 
@@ -13,14 +13,5 @@ class TextCommand < Command
     event.respond(@text)
   end
 
-  def test_can_register_command
-    registry = CommandRegistry.new
-    command = TextCommand.new(name: "hello", description: "Says hello", text: "Hello!")
 
-    registry.register(command)
-
-    # Verifiera att kommandot registrerades (vi testar detta via find i nästa test)
-    # För nu, bara att det inte kraschar
-    assert true
-  end
 end

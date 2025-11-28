@@ -28,7 +28,7 @@ hello_command = TextCommand.new(
 
 ping_command = TextCommand.new(
   name: "ping",
-  description: "Pings the bot",
+  description: "Pings",
   text: "Pong!"
 )
 
