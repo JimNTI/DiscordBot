@@ -3,6 +3,9 @@ require 'dotenv/load'
 require_relative 'lib/text_command'
 require_relative 'lib/dice_command'
 require_relative 'lib/echo_command'
+require_relative 'lib/help_command'
+require_relative 'lib/command_registry'
+
 # Hämta token från miljövariabel
 token = ENV['DISCORD_BOT_TOKEN']
 
@@ -13,11 +16,12 @@ if token.nil? || token.empty?
 end
 
 # Skapa bot
-bot = Discordrb::Bot.new(token: token,  intents: [:server_messages])
+bot = Discordrb::Bot.new(token: token,  intents: [:server_messages, :direct_messages])
+
+registry = CommandRegistry.new
 
 # Skapa kommando-instanser
-dice_command = DiceCommand.new
-echo_command = EchoCommand.new
+
 
 # Enkla textkommandon - nu med TextCommand!
 hello_command = TextCommand.new(
@@ -46,29 +50,42 @@ skibidi_command = TextCommand.new(
 )
 
 
+help_command = HelpCommand.new(registry: registry)
+
+dice_command = DiceCommand.new
+echo_command = EchoCommand.new
+
+
+registry.register(hello_command)
+registry.register(ping_command)
+registry.register(info_command)
+registry.register(dice_command)
+registry.register(echo_command)
+registry.register(help_command)
+registry.register(skibidi_command)
+
 # Hantera meddelanden
 bot.message do |event|
-  # Ignorera bot:ens egna meddelanden
   next if event.user.bot_account?
 
-  content = event.content.strip.downcase
+  content = event.content.strip
+  parts = content.split
+  command_name = parts[0].downcase  # "!hello", "!echo", etc.
+  args = parts[1..] || []
 
-  # Kolla om meddelandet är ett kommando
-  case content
-  when "!hello"
-    hello_command.execute(event)
-  when "!ping"
-    ping_command.execute(event)
-  when "!info"
-    info_command.execute(event)
-  when "!dice"
-    dice_command.execute(event)
-  when /^!echo/
-  text = content.sub("!echo", "").strip
-  echo_command.execute(event, text)
-  when "skibidi"
-    skibidi_command.execute(event)
+  command = registry.find(command_name)
+  next unless command
+
+  if command.is_a?(EchoCommand) || command.is_a?(DiceCommand)
+    command.execute(event, args.join(" "))
+  else
+    command.execute(event)
   end
+end
+
+
+
+
 end
 
 # Logga när bot:en startar
